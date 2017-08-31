@@ -1,12 +1,14 @@
 from kafka import KafkaProducer
 
+import couchdb
 import json
 import tweepy
 
 class Listener(tweepy.StreamListener):
     def __init__(self):
-        self.producer = KafkaProducer(bootstrap_servers = '127.0.0.1:9092', value_serializer=lambda v: json.dumps(v).encode('utf-8'))
-
+        #self.producer = KafkaProducer(bootstrap_servers = '127.0.0.1:9092', value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+	self.couch = couchdb.Server()
+	self.db = self.couch['tweets']
 
     def on_data(self, data):
         try:
@@ -18,7 +20,7 @@ class Listener(tweepy.StreamListener):
             print '------------------'
             print
 
-            self.producer.send('tweets', msg)
+            self.db.save(msg)
 
             return True
         except BaseException as e:
